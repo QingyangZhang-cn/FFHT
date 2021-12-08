@@ -18,7 +18,7 @@ import os
 import ffht_train
 
 ####################Setting############################
-device = torch.device("cuda:1")
+device = torch.device("cpu")
 epochs  = 100000
 batchsize = 1001*41
 learning_rate = 1e-3
@@ -34,6 +34,7 @@ g = 9.8
 rho = 1
 ####################Reading X Y########################
 np.random.seed(1)
+Data = np.load('XYC.npz')
 x = Data['x']
 y = Data['y']
 print('shape of x',x.shape)

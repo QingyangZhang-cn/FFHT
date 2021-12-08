@@ -33,17 +33,15 @@ def ffht_train(device,xStart,xEnd,L,D,x,y,Um,nu,rho,g,batchsize,learning_rate,ep
 			super(Net1, self).__init__()
 			self.main = nn.Sequential(
 				nn.Linear(2,h_nD),
-				nn.Tanh(),
+				nn.Sigmoid(),
 				nn.Linear(h_nD,h_nD),
-				nn.Tanh(),
-				nn.Linear(h_nD,h_nD),
-				nn.Tanh(),
-
-				nn.Linear(h_nD,1),
+				nn.Sigmoid(),
+				nn.Linear(h_nD,2),
+				nn.Sigmoid(),
 			)
 		def forward(self,x):
-			output = self.main(x)
-			return  output
+			output = 1.0+10*self.main(x)
+			return output
 	class Net2(nn.Module):
 		def __init__(self):
 			super(Net2, self).__init__()
@@ -152,7 +150,7 @@ def ffht_train(device,xStart,xEnd,L,D,x,y,Um,nu,rho,g,batchsize,learning_rate,ep
 	net4.apply(init_normal)
 	net5.apply(init_normal)
 	#############################Adam optimizer########################################
-
+	optimizer1 = optim.Adam(net1.parameters(), lr=learning_rate, betas = (0.9,0.99),eps = 10**-15)
 	optimizer2 = optim.Adam(net2.parameters(), lr=learning_rate, betas = (0.9,0.99),eps = 10**-15)
 	optimizer3	= optim.Adam(net3.parameters(), lr=learning_rate, betas = (0.9,0.99),eps = 10**-15)
 	optimizer4	= optim.Adam(net4.parameters(), lr=learning_rate, betas = (0.9,0.99),eps = 10**-15)
@@ -210,8 +208,17 @@ def ffht_train(device,xStart,xEnd,L,D,x,y,Um,nu,rho,g,batchsize,learning_rate,ep
 
 	################# LOSS #################################
 		loss_f = nn.MSELoss()
+		loss_eq = loss_f(loss_1,torch.zeros_like(loss_1))+loss_f(loss_2,torch.zeros_like(loss_2))+loss_f(loss_3,torch.zeros_like(loss_3))+loss_f(loss_4,torch.zeros_like(loss_4))
+		loss_BCU = loss_f(loss_BC,torch.zeros_like(loss_BC))
+		loss_BCT = loss_f(loss_BC1,torch.zeros_like(loss_BC1))
+		loss_BCU = loss_BCU.view(1,-1)
+		loss_BCT = loss_BCT.view(1,-1)
 
-		loss = 10000*(loss_f(loss_1,torch.zeros_like(loss_1))+ loss_f(loss_2,torch.zeros_like(loss_2))+loss_f(loss_3,torch.zeros_like(loss_3))+loss_f(loss_4,torch.zeros_like(loss_4))) + loss_f(loss_BC,torch.zeros_like(loss_BC))+loss_f(loss_BC1,torch.zeros_like(loss_BC1))
+		sigma_in = torch.cat((loss_BCU,loss_BCT),1)
+		sigma_out = net1(sigma_in)
+		sg1 = sigma_out[0,0]
+		sg2 = sigma_out[0,1]
+		loss = loss_eq + 100*((1/(sg1*sg1))*loss_BCU + (1/sg2*sg2)*loss_BCT)
 
 		return loss
 
@@ -222,13 +229,15 @@ def ffht_train(device,xStart,xEnd,L,D,x,y,Um,nu,rho,g,batchsize,learning_rate,ep
 
 	for epoch in range(epochs):
 		for batch_idx, (x_in,y_in) in enumerate(dataloader):
+			net1.zero_grad()
 			net2.zero_grad()
 			net3.zero_grad()
 			net4.zero_grad()
 			net5.zero_grad()
 			loss = criterion(x_in,y_in)
 			loss.backward()
-			optimizer2.step() 
+			optimizer1.step() 
+			optimizer2.step()
 			optimizer3.step()
 			optimizer4.step()
 			optimizer5.step()
