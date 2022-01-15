@@ -226,7 +226,7 @@ def ffht_train(device,rStart,rEnd,L,r,O,nu,rho,wmax,batchsize,learning_rate,epoc
 		sg1 = sigma_out[0,0]
 		sg2 = sigma_out[0,1]
 
-		loss = loss_eq + 100*((1/(sg1*sg1))*loss_BCW + (1/sg2*sg2)*loss_BCT + torch.log(sg1*sg2))
+		loss = loss_eq + 100*((1/(2*sg1*sg1))*loss_BCW + (1/(2*sg2*sg2))*loss_BCT + torch.log(sg1*sg2))
 
 		return loss
 

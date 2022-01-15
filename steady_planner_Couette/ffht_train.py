@@ -218,7 +218,7 @@ def ffht_train(device,xStart,xEnd,L,D,x,y,Um,nu,rho,g,batchsize,learning_rate,ep
 		sigma_out = net1(sigma_in)
 		sg1 = sigma_out[0,0]
 		sg2 = sigma_out[0,1]
-		loss = loss_eq + 100*((1/(sg1*sg1))*loss_BCU + (1/sg2*sg2)*loss_BCT)
+		loss = loss_eq + 100*((1/(2*sg1*sg1))*loss_BCU + (1/(2*sg2*sg2))*loss_BCT)
 
 		return loss
 
