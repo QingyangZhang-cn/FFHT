@@ -1,3 +1,8 @@
+# Warning
+Due to the version update of the Pytorch, the use of some functions is abnormal, and this version has stopped updates.
+Stay tuned for the sharing of new works!
+
+
 # FFHT
 This repositories aims to disclose the codes and datasets in our research paper "PINN-FFHT". 
 Since our manuscript has not been officially published, some datasets are not fully disclosed.
